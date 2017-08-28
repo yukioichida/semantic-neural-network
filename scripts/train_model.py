@@ -5,6 +5,7 @@ import pandas as pd
 import nltk
 import numpy as np
 from time import time
+import datetime
 
 
 from keras.models import Model
@@ -53,24 +54,6 @@ tokenizer.fit_on_texts(sentences_2)
 word_index = tokenizer.word_index
 num_words = min(MAX_NB_WORDS, len(word_index))
 print('Found %s unique tokens. Num. words used %s' % (len(word_index), num_words))
-
-'''
-print('Loading word2vec model...')
-word2vec_model = KeyedVectors.load_word2vec_format(WORD2VEC_FILE, binary=True)
-embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
-
-for word, idx in word_index.items():
-    if idx >= num_words:
-        continue
-    if word in word2vec_model.vocab:
-        embedding_vector = word2vec_model[word]
-        if embedding_vector is not None:
-            embedding_matrix[idx] = embedding_vector
-
-#np.savetxt("embedding_matrix.txt", embedding_matrix, delimiter=',')
-print("Closing word2vec model")
-del word2vec_model
-'''
 
 embedding_matrix = np.loadtxt("embedding_matrix.txt")
 
@@ -123,4 +106,13 @@ malstm.compile(loss = 'mean_squared_error',
                metrics=['acc'])
 
 training_time = time()
+EPOCHS = 2
+malstm.fit([x1_train, x2_train], y_train,
+           nb_epoch= EPOCHS,
+           batch_size=BATCH_SIZE,
+           validation_data=([x1_test, x2_test], y_test))
 
+print("Training time finished.\n{} epochs in {}".format(EPOCHS, datetime.timedelta(seconds=time()-training_time)))
+
+score, acc = malstm.evaluate([x1_test, x2_test], y_test, batch_size=BATCH_SIZE)
+print("Test score: %.3f, accuracy: %.3f" % (score, acc))
