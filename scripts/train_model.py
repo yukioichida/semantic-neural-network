@@ -7,6 +7,9 @@ import numpy as np
 from time import time
 import datetime
 
+from keras.optimizers import Adadelta
+
+
 
 from keras.models import Model
 from keras.layers import Dense, Input, LSTM, Embedding, Dropout, Activation, Merge
@@ -31,12 +34,17 @@ DATASET_BASEDIR = "..\\..\\datasets\\"
 # Paraphrase dataset
 PP_DATASET = os.path.join(DATASET_BASEDIR, "pp\pp-unified-processed.tsv")
 # STS english dataset
-STS_DATASET = os.path.join(DATASET_BASEDIR, "similarity\en\sts-processed.tsv")
+STS_DATASET = os.path.join(DATASET_BASEDIR, "similarity\en\sts-2014.txt")
 DELIMITER = '\t'
 dataset_file = STS_DATASET
 
-dataframe = pd.read_csv(dataset_file, delimiter='\t')
-dataframe[['label']] = dataframe[['label']].astype(float)
+dataframe = pd.read_csv(dataset_file, delimiter='\t', encoding="utf-8")
+#dataframe[['label']] = dataframe[['label']].astype(float)
+
+print("Label invalid = %s" % (dataframe.loc[dataframe['label'] > 5.0]))
+
+print(dataframe.get_value(2351, 's2'))
+
 all_sentences = []
 sentences_1 = []
 sentences_2 = []
@@ -44,7 +52,8 @@ labels = []
 for index, row in dataframe.iterrows():
     sentences_1.append(row['s1'])
     sentences_2.append(row['s2'])
-    labels.append(row['label'])
+    labels.append(float(row['label']))
+
 
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(sentences_1)
@@ -55,7 +64,28 @@ word_index = tokenizer.word_index
 num_words = min(MAX_NB_WORDS, len(word_index))
 print('Found %s unique tokens. Num. words used %s' % (len(word_index), num_words))
 
-embedding_matrix = np.loadtxt("embedding_matrix.txt")
+print('Loading word2vec model...')
+word2vec_model = KeyedVectors.load_word2vec_format(WORD2VEC_FILE, binary=True)
+embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
+
+##
+##
+## feature rescaling
+##
+##
+for word, idx in word_index.items():
+    if idx >= num_words:
+        continue
+    if word in word2vec_model.vocab:
+        embedding_vector = word2vec_model.word_vec(word)
+        if embedding_vector is not None:
+            embedding_matrix[idx] = embedding_vector
+
+#np.savetxt("embedding_matrix.txt", embedding_matrix, delimiter=',')
+print("Closing word2vec model")
+del word2vec_model
+
+
 
 # Prepare the neural network inputs
 input_sentences_1 = tokenizer.texts_to_sequences(sentences_1)
@@ -67,11 +97,15 @@ y = np.array(labels)
 
 x1_train, x1_test, x2_train, x2_test, y_train, y_test = train_test_split(x1, x2, y, test_size=0.2, random_state=42)
 
+# Make sure everything is ok
+assert x1_train.shape == x2_train.shape
 
 
 def exponent_neg_manhattan_distance(left, right):
     ''' Helper function for the similarity estimate of the LSTMs outputs'''
     return K.exp(-K.sum(K.abs(left-right), axis=1, keepdims=True))
+
+print("Creating model...")
 
 # ============= MODEL =====================
 # A entrada recebe os índices das palavras no vocabulário, para fazer o lookup na tabela de embeddings
@@ -100,19 +134,22 @@ malstm_distance = Merge(mode=lambda x: exponent_neg_manhattan_distance(x[0], x[1
     ([left_representation, right_representation])
 
 malstm = Model([left_input, right_input], [malstm_distance])
+gradient_clipping_norm = 1.25
+# Adadelta optimizer, with gradient clipping by norm
+optimizer = Adadelta(clipnorm=gradient_clipping_norm)
 
 malstm.compile(loss = 'mean_squared_error',
-               optimizer='nadam',
-               metrics=['acc'])
+               optimizer=optimizer,
+               metrics=['accuracy'])
 
 training_time = time()
-EPOCHS = 2
+EPOCHS = 20
 malstm.fit([x1_train, x2_train], y_train,
            nb_epoch= EPOCHS,
            batch_size=BATCH_SIZE,
            validation_data=([x1_test, x2_test], y_test))
 
-print("Training time finished.\n{} epochs in {}".format(EPOCHS, datetime.timedelta(seconds=time()-training_time)))
+print("\nTraining time finished.\n{} epochs in {}".format(EPOCHS, datetime.timedelta(seconds=time()-training_time)))
 
 score, acc = malstm.evaluate([x1_test, x2_test], y_test, batch_size=BATCH_SIZE)
-print("Test score: %.3f, accuracy: %.3f" % (score, acc))
+print("\nTest score: %.3f, accuracy: %.3f" % (score, acc))
