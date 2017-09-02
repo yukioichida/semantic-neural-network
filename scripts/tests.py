@@ -36,6 +36,50 @@ print(X2test)
 print(Ytrain)
 print(Ytest)
 '''
-import pand
-a = '1.250'
-print(float(a) - 1)
+#import nltk
+#from nltk.corpus import wordnet as wn
+
+sent = "The girl, who is little, is combing her hair into a pony tail."
+
+#for word in nltk.word_tokenize(sent):
+
+#word = wn.synset('little.a.01')
+
+#print(word.hypernyms())
+
+import pandas as pd
+
+df = pd.read_csv('asd.csv', encoding='utf-8', sep='\t')
+
+#print(df)
+
+#print(df[df.entailment_judgment != 'CONTRADICTION'])
+
+sentences = df['sentence_A']
+
+#print(sentences.values)
+#import numpy as np
+#embeddings = 1 * np.random.randn(10 + 1, 3)  # This will be the embedding matrix
+#embeddings[0] = 0  # So that the padding will be ignored
+#print(embeddings)
+
+import logging
+logger = logging.getLogger()
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+        '%(asctime)s : %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
+#logger.debug('often makes a very good meal of %s', 'visiting tourists')
+
+from modules.input_data import prepare_input_data
+from modules.datasets import SICKDataset
+
+df = SICKDataset('asd.csv').data_frame()
+
+input_data = prepare_input_data(df)
+
+print("Max sentence length %s" % (input_data.max_sentence_length))
+print(input_data.word_index)

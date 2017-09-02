@@ -12,7 +12,8 @@ from keras.optimizers import Adadelta
 
 
 from keras.models import Model
-from keras.layers import Dense, Input, LSTM, Embedding, Dropout, Activation, Merge
+from keras.layers import Dense, Input, Embedding, Dropout, Activation, Merge
+from keras.layers.recurrent import GRU, LSTM
 from keras.layers.merge import concatenate
 from sklearn.model_selection import train_test_split
 from keras.preprocessing.text import Tokenizer
@@ -24,7 +25,7 @@ WORD2VEC_FILE = "C:\dev_env\ml\datasets\GoogleNews-vectors-negative300.bin\Googl
 GLOVE_FILE = "C:\dev_env\ml\datasets\glove.6B\glove.6B.300d.gensim.txt"
 
 MAX_NB_WORDS = 60000
-MAX_SENTENCE_LENGTH = 40 # maximum words in a sentence
+MAX_SENTENCE_LENGTH = 63 # maximum words in a sentence
 EMBEDDING_DIM = 300 # dimension of the word embedding vectors
 
 LSTM_HIDDEN_LAYERS=50 # by the paper
@@ -34,17 +35,13 @@ DATASET_BASEDIR = "..\\..\\datasets\\"
 # Paraphrase dataset
 PP_DATASET = os.path.join(DATASET_BASEDIR, "pp\pp-unified-processed.tsv")
 # STS english dataset
-STS_DATASET = os.path.join(DATASET_BASEDIR, "similarity\en\sts-2014.txt")
+STS_DATASET = os.path.join(DATASET_BASEDIR, "similarity\en\sts-processed.tsv")
 DELIMITER = '\t'
 dataset_file = STS_DATASET
 
 dataframe = pd.read_csv(dataset_file, delimiter='\t', encoding="utf-8")
-#dataframe[['label']] = dataframe[['label']].astype(float)
 
-print("Label invalid = %s" % (dataframe.loc[dataframe['label'] > 5.0]))
-
-print(dataframe.get_value(2351, 's2'))
-
+print("Loading Sentences from dataset")
 all_sentences = []
 sentences_1 = []
 sentences_2 = []
@@ -54,10 +51,10 @@ for index, row in dataframe.iterrows():
     sentences_2.append(row['s2'])
     labels.append(float(row['label']))
 
-
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(sentences_1)
 tokenizer.fit_on_texts(sentences_2)
+print("Vocabulary created...")
 
 # Prepare embedding matrix for the lookup of the embedding layer
 word_index = tokenizer.word_index
@@ -68,6 +65,7 @@ print('Loading word2vec model...')
 word2vec_model = KeyedVectors.load_word2vec_format(WORD2VEC_FILE, binary=True)
 embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
 
+print('Start creating the embedding matrix...')
 ##
 ##
 ## feature rescaling
@@ -93,7 +91,7 @@ input_sentences_2 = tokenizer.texts_to_sequences(sentences_2)
 
 x1 = pad_sequences(input_sentences_1, MAX_SENTENCE_LENGTH)
 x2 = pad_sequences(input_sentences_2, MAX_SENTENCE_LENGTH)
-y = np.array(labels)
+y = np.array(labels) / 5
 
 x1_train, x1_test, x2_train, x2_test, y_train, y_test = train_test_split(x1, x2, y, test_size=0.2, random_state=42)
 
@@ -123,7 +121,7 @@ left_encoder = embedding_layer(left_input)
 right_encoder = embedding_layer(right_input)
 
 # LSTM
-base_lstm = LSTM(LSTM_HIDDEN_LAYERS)
+base_lstm = GRU(LSTM_HIDDEN_LAYERS)
 
 left_representation = base_lstm(left_encoder)
 right_representation = base_lstm(right_encoder)
@@ -143,9 +141,9 @@ malstm.compile(loss = 'mean_squared_error',
                metrics=['accuracy'])
 
 training_time = time()
-EPOCHS = 20
+EPOCHS = 200
 malstm.fit([x1_train, x2_train], y_train,
-           nb_epoch= EPOCHS,
+           epochs= EPOCHS,
            batch_size=BATCH_SIZE,
            validation_data=([x1_test, x2_test], y_test))
 
