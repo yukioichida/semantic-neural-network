@@ -72,14 +72,48 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-#logger.debug('often makes a very good meal of %s', 'visiting tourists')
+df1 = pd.DataFrame({'A': ['A0', 'A1', 'A2', 'A3'],
+                     'B': ['B0', 'B1', 'B2', 'B3'],
+                        'C': ['C0', 'C1', 'C2', 'C3'],
+                        'D': ['D0', 'D1', 'D2', 'D3']},
+                       index=[0, 1, 2, 3])
 
-from modules.input_data import prepare_input_data
-from modules.datasets import SICKDataset
+df4 = pd.DataFrame({'B': ['B2', 'B3', 'B6', 'B7'],
+                     'D': ['D2', 'D3', 'D6', 'D7'],
+                     'F': ['F2', 'F3', 'F6', 'F7']},
+                    index=[2, 3, 6, 7])
 
-df = SICKDataset('asd.csv').data_frame()
+result = pd.concat([df1, df4], axis=1)
+#print(result)
 
-input_data = prepare_input_data(df)
+import numpy as np
+def sts_labels2categorical(labels, nclass=6):
+    """
+    From continuous labels in [0,5], generate 5D binary-ish vectors.
+    This enables us to do classification instead of regression.
+    (e.g. sigmoid output would be troublesome with the original labeling)
+    Label encoding from Tree LSTM paper (Tai, Socher, Manning)
+    (Based on https://github.com/ryankiros/skip-thoughts/blob/master/eval_sick.py)
+    """
+    Y = np.zeros((len(labels), nclass))
+    for j, y in enumerate(labels):
+        if np.floor(y) + 1 < nclass:
+            Y[j, int(np.floor(y)) + 1] = y - np.floor(y)
+        Y[j, int(np.floor(y))] = np.floor(y) - y + 1
+    return Y
 
-print("Max sentence length %s" % (input_data.max_sentence_length))
-print(input_data.word_index)
+
+#print (sts_labels2categorical([3.2, 4.5, 1.2]))
+
+import scipy.stats as stats
+array = [[1],[2],[3], [4.5]]
+print (np.array(array).ravel())
+#print(stats.pearsonr([1, 2, 3], [0.8, 1.9, 3.2]))
+
+
+
+
+
+
+
+

@@ -23,6 +23,7 @@ BATCH_SIZE = 100
 QUORA_FILE = 'C:\\dev_env\\ml\\datasets\\quora_questions_pair\\train.csv'
 #STS_FILE = 'C:\\dev_env\\ml\\datasets\\sts\\sts_all.txt'
 STS_FILE = 'C:\\dev_env\\ml\\datasets\\sts\\sts-processed.tsv'
+STS_REDUCED_FILE = 'C:\\dev_env\\ml\\datasets\\sts\\sts-reduced.txt'
 
 SICK_FILE = 'C:\\dev_env\ml\\datasets\\sick_2014\\SICK_complete.txt'
 WORD2VEC = 'C:\dev_env\ml\datasets\GoogleNews-vectors-negative300.bin\\GoogleNews-vectors-negative300.bin'
@@ -33,13 +34,11 @@ EMBEDDING_FILE = WORD2VEC
 pretrain_dataframe = SICKDataset(SICK_FILE).data_frame()
 train_dataframe = STSDataset(STS_FILE).data_frame()
 
+pretrain_input_data, train_input_data = prepare_input_data(pretrain_dataframe, train_dataframe, rescaling_output=5)
 
-input_data = prepare_input_data(dataframe, rescaling_output=5)
-
-
-max_sentence_length = input_data.max_sentence_length
-vocab_size = input_data.vocab_size + 1
-word_index = input_data.word_index
+max_sentence_length = train_input_data.max_sentence_length
+vocab_size = train_input_data.vocab_size + 1
+word_index = train_input_data.word_index
 
 #=======================================
 #   EMBEDDING MATRIX FOR WORD EMBEDDINGS
@@ -106,8 +105,9 @@ malstm.compile(loss = 'mean_squared_error',
 # =====================================
 # ============= PRE TRAIN =============
 # =====================================
-x1_train, x1_test, x2_train, x2_test, y_train, y_test = train_test_split(input_data.x1, input_data.x2, input_data.y,
-                                                                         test_size=0.2, random_state=42)
+LOG.info("START PRE TRAIN")
+x1_train, x1_test, x2_train, x2_test, y_train, y_test = train_test_split(pretrain_input_data.x1, pretrain_input_data.x2, pretrain_input_data.y,
+                                                                         test_size=0.2)
 training_time = time()
 EPOCHS = 20
 malstm.fit([x1_train, x2_train], y_train,
@@ -123,3 +123,34 @@ print("\nTest score: %.3f, accuracy: %.3f" % (score, acc))
 # =====================================
 # ============= TRAIN =============
 # =====================================
+x1_train, x1_test, x2_train, x2_test, y_train, y_test = train_test_split(train_input_data.x1, train_input_data.x2, train_input_data.y,
+                                                                         test_size=0.2)
+training_time = time()
+EPOCHS = 20
+malstm.fit([x1_train, x2_train], y_train,
+           epochs= EPOCHS,
+           batch_size=BATCH_SIZE,
+           validation_data=([x1_test, x2_test], y_test))
+
+print("\nTraining time finished.\n{} epochs in {}".format(EPOCHS, datetime.timedelta(seconds=time()-training_time)))
+
+score, acc = malstm.evaluate([x1_test, x2_test], y_test, batch_size=BATCH_SIZE)
+print("\nTest score: %.3f, accuracy: %.3f" % (score, acc))
+
+# =====
+# PREDICT
+# =====
+import scipy.stats as stats
+from sklearn.metrics import mean_squared_error as mse
+
+
+y_pred = malstm.predict([train_input_data.x1, train_input_data.x2])
+print(y_pred.ravel())
+print(train_input_data.y)
+pr = stats.pearsonr(y_pred.ravel(), train_input_data.y)[0]
+sr = stats.spearmanr(y_pred.ravel(), train_input_data.y)[0]
+e = mse(y_pred.ravel(), train_input_data.y)
+print(' Pearson: %f' % (pr))
+print(' Spearman: %f' % ( sr))
+print(' MSE: %f' % ( e))
+

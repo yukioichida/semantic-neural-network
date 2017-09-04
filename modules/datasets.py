@@ -1,8 +1,9 @@
 import pandas as pd
+from pandas import DataFrame
 
 class Dataset:
 
-    def data_frame(self):
+    def data_frame(self) -> DataFrame:
         return self.df
 
 
