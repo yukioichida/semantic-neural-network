@@ -64,7 +64,7 @@ def prepare_input_data(pretrain_df, train_df, rescaling_output = 1) -> (InputDat
                 max_sentence_length = sentence_length
 
     # Prepare the neural network inputs
-    (pretrain_x1, pretrain_x2, pretrain_y) = get_samples(pretrain_sentences_1, pretrain_sentences_1, pretrain_labels,
+    (pretrain_x1, pretrain_x2, pretrain_y) = get_samples(pretrain_sentences_1, pretrain_sentences_2, pretrain_labels,
                                                 tokenizer, max_sentence_length, rescaling_output=rescaling_output)
 
     (train_x1, train_x2, train_y) = get_samples(train_sentences_1, train_sentences_2, train_labels,
