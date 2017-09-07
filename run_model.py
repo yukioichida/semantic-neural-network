@@ -30,7 +30,7 @@ WORD2VEC = 'C:\dev_env\ml\datasets\GoogleNews-vectors-negative300.bin\\GoogleNew
 GLOVE = 'C:\dev_env\ml\datasets\glove.6B\\glove.6B.300d.gensim.txt'
 FAST_TEXT = 'C:\dev_env\ml\\datasets\\fasttext_english\\wiki.en.vec'
 
-EMBEDDING_FILE = GLOVE
+EMBEDDING_FILE = WORD2VEC
 EMBEDDING_BINARY = EMBEDDING_FILE == WORD2VEC
 
 pretrain_dataframe = SICKDataset(SICK_FILE).data_frame()
