@@ -1,4 +1,7 @@
-*embedding_matrix.txt
+embedding_matrix/
+results/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
