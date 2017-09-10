@@ -33,6 +33,9 @@ class ResultData:
             samples_results.append('%s - %s' % (y_pred[i], y_val[i]))
         self.results = samples_results
 
+    def observation(self, obs):
+        self.obs = obs
+
     def to_yaml(self):
         return {
             'input config' : {
@@ -45,7 +48,8 @@ class ResultData:
             'spearman' : self.spearman,
             'mean squared error': self.mse,
             'mean absolute error': self.mae,
-            'results': self.results
+            'results': self.results,
+            'obs': self.obs
         }
 
     def write(self):
@@ -59,7 +63,7 @@ class ResultData:
         with open(yaml_file, 'w') as file:
             yaml.dump(self.to_yaml(), file, default_flow_style=False)
 
-def create_output(y_pred, y_test, mae, input_config:InputConfiguration, scale=5):
+def create_output(y_pred, y_test, mae, input_config:InputConfiguration, obs = '',scale=5):
     samples = y_pred.ravel()[:20] * 5
     gt = y_test[:20] * 5
 
@@ -73,5 +77,6 @@ def create_output(y_pred, y_test, mae, input_config:InputConfiguration, scale=5)
 
     result = ResultData(np.asscalar(pr_val), np.asscalar(sr_val), np.asscalar(mse_val), np.asscalar(mae), input_config)
     result.add_results(samples, gt)
+    result.observation(obs)
     result.write()
 

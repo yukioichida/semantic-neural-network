@@ -4,7 +4,7 @@ from keras.layers.recurrent import GRU, LSTM
 from keras import backend as K
 from keras.initializers import random_uniform
 
-def init_model(batch_size, max_sequence_length, embedding_matrix,
+def init_model(max_sequence_length, embedding_matrix,
                vocab_size, lstm_hidden_layers=50, embedding_dim = 300) -> Model:
 
     # A entrada recebe os índices das palavras no vocabulário, para fazer o lookup na tabela de embeddings
@@ -21,8 +21,10 @@ def init_model(batch_size, max_sequence_length, embedding_matrix,
     right_encoder = embedding_layer(right_input)
 
     # LSTM
-    bias_initializer = random_uniform(minval=-0.5, maxval=0.5)
-    base_lstm = LSTM(lstm_hidden_layers, bias_initializer=bias_initializer)
+    #bias_initializer = random_uniform(minval=-0.5, maxval=0.5)
+    #base_lstm = LSTM(lstm_hidden_layers, bias_initializer=bias_initializer)
+    base_lstm = GRU(lstm_hidden_layers)
+    #base_lstm = LSTM(lstm_hidden_layers)
 
     left_representation = base_lstm(left_encoder)
     right_representation = base_lstm(right_encoder)
