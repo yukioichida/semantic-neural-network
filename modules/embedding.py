@@ -17,7 +17,7 @@ def load_embedding_matrix(dataset_name, embedding_file, word_index, embedding_di
 
     if os.path.exists(embedding_matrix_file):
         LOG.info('Loading existing embedding matrix')
-        embedding_matrix = np.load(embedding_matrix_file)
+        embedding_matrix = np.loadtxt(embedding_matrix_file)
     else:
         LOG.info('File %s not found. Loading new embedding matrix from: %s' % (embedding_matrix_file, embedding_name))
         embedding_model = KeyedVectors.load_word2vec_format(embedding_file, binary=binary)
@@ -37,6 +37,6 @@ def load_embedding_matrix(dataset_name, embedding_file, word_index, embedding_di
         LOG.info('Embedding matrix as been created, removing embedding model from memory')
         del embedding_model
         LOG.info('Saving matrix in file %s' % (embedding_matrix_file))
-        np.save(embedding_matrix_file, embedding_matrix)
+        np.savetxt(embedding_matrix_file, embedding_matrix)
 
     return embedding_matrix

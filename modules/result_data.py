@@ -63,6 +63,8 @@ class ResultData:
         with open(yaml_file, 'w') as file:
             yaml.dump(self.to_yaml(), file, default_flow_style=False)
 
+
+
 def create_output(y_pred, y_test, mae, input_config:InputConfiguration, obs = '',scale=5):
     samples = y_pred.ravel()[:20] * 5
     gt = y_test[:20] * 5

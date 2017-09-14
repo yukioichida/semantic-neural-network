@@ -23,8 +23,8 @@ def init_model(max_sequence_length, embedding_matrix,
     # LSTM
     #bias_initializer = random_uniform(minval=-0.5, maxval=0.5)
     #base_lstm = LSTM(lstm_hidden_layers, bias_initializer=bias_initializer)
-    base_lstm = GRU(lstm_hidden_layers)
-    #base_lstm = LSTM(lstm_hidden_layers)
+    #base_lstm = GRU(lstm_hidden_layers)
+    base_lstm = LSTM(lstm_hidden_layers, implementation=2)
 
     left_representation = base_lstm(left_encoder)
     right_representation = base_lstm(right_encoder)
@@ -34,7 +34,9 @@ def init_model(max_sequence_length, embedding_matrix,
 
     def exponent_neg_manhattan_distance(vector):
         #    ''' Helper function for the similarity estimate of the LSTMs outputs'''
-        return K.exp(-K.sum(K.abs(vector[0] - vector[1]), axis=1, keepdims=True))
+        exp = K.exp(-K.sum(K.abs(vector[0] - vector[1]), axis=1, keepdims=True))
+        #return K.clip(exp, 0, 1)
+        return exp
 
 
     malstm_distance = Lambda(exponent_neg_manhattan_distance, output_shape=out_shape)(

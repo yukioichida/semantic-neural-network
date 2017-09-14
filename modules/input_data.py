@@ -25,7 +25,7 @@ class ProcessInputData:
     def __init__(self):
         self.tokenizer = Tokenizer()
 
-    def pre_process_data(self,df):
+    def pre_process_data(self,df, invert = True):
         sentences_1 = []
         sentences_2 = []
         labels = []
@@ -34,6 +34,11 @@ class ProcessInputData:
             sentences_2.append(prepare_text(row['s2']))
             label = float(row['label'])
             labels.append(round(label, 1))
+            if invert:
+                sentences_1.append(prepare_text(row['s2']))
+                sentences_2.append(prepare_text(row['s1']))
+                labels.append(round(label, 1))
+
         return (sentences_1, sentences_2, labels)
 
 
@@ -41,6 +46,7 @@ class ProcessInputData:
         # Prepare the neural network inputs
         input_sentences_1 = self.tokenizer.texts_to_sequences(sentences_1)
         input_sentences_2 = self.tokenizer.texts_to_sequences(sentences_2)
+        print("Vocab size on get samples %s" %(len(self.tokenizer.word_index)))
         x1 = pad_sequences(input_sentences_1, max_sentence_length)
         x2 = pad_sequences(input_sentences_2, max_sentence_length)
         y = np.array(label) / rescaling_output  # WARNING: LABEL RESCALING
