@@ -29,7 +29,7 @@ class ResultData:
 
     def add_results(self, y_pred, y_val):
         samples_results = []
-        for i in range(0, len(y_pred)-1):
+        for i in range(0, len(y_pred)):
             samples_results.append('%s - %s' % (y_pred[i], y_val[i]))
         self.results = samples_results
 
@@ -66,12 +66,16 @@ class ResultData:
 
 
 def create_output(y_pred, y_test, mae, input_config:InputConfiguration, obs = '',scale=5):
-    samples = y_pred.ravel()[:20] * 5
-    gt = y_test[:20] * 5
+    samples = y_pred.ravel()[:]
+    gt = y_test[:]
 
-    pr_val = stats.pearsonr(y_pred.ravel() * scale, y_test * scale)[0]
-    sr_val = stats.spearmanr(y_pred.ravel() * scale, y_test * scale)[0]
-    mse_val = mse(y_pred.ravel() * scale, y_test * scale)
+    y_p = y_pred.ravel()
+    y_t = y_test
+    print(len(y_p))
+    print(len(y_t))
+    pr_val = stats.pearsonr(y_p, y_t)[0]
+    sr_val = stats.spearmanr(y_p, y_t)[0]
+    mse_val = mse(y_p, y_t)
 
     print(' Pearson: %f' % (pr_val))
     print(' Spearman: %f' % (sr_val))

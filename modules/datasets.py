@@ -10,7 +10,7 @@ class Dataset:
 class STSDataset(Dataset):
 
     def __init__(self, filename):
-        self.df = pd.read_csv(filename, sep='\t', encoding="utf-8", names=['label', 's1', 's2'])
+        self.df = pd.read_csv(filename, sep='\t', encoding="utf-8", names=['label', 's1', 's2'], quoting=3)
 
     def name(self):
         return "sts"
@@ -40,7 +40,7 @@ class SICKDataset(Dataset):
 class SICKFullDataset(Dataset):
 
     def __init__(self, filename):
-        df = pd.read_csv(filename, sep='\t', encoding="utf-8")
+        df = pd.read_csv(filename, sep='\t', encoding="utf-8", quoting=3)
         self.df =  df.rename(columns={'sentence_A': 's1', 'sentence_B': 's2', 'relatedness_score': 'label'})
 
     def name(self):
