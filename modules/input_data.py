@@ -11,19 +11,18 @@ import numpy as np
 
 class InputData:
 
-    def __init__(self, word_index, vocab_size, max_sentence_length, x1, x2, y):
-        self.vocab_size = vocab_size
-        self.max_sentence_length = max_sentence_length
+    def __init__(self, x1, x2, y):
         self.x1 = x1
         self.x2 = x2
         self.y = y
-        self.word_index = word_index
 
 
 class ProcessInputData:
 
     def __init__(self):
         self.tokenizer = Tokenizer()
+        self.max_sentence_length = -1
+
 
     def pre_process_data(self,df):
         sentences_1 = []
@@ -38,28 +37,32 @@ class ProcessInputData:
         return (sentences_1, sentences_2, labels)
 
 
-    def get_samples(self, sentences_1, sentences_2, label, max_sentence_length, rescaling_output=1):
+    def get_samples(self, sentences_1, sentences_2, label, rescaling_output=1):
         # Prepare the neural network inputs
         input_sentences_1 = self.tokenizer.texts_to_sequences(sentences_1)
         input_sentences_2 = self.tokenizer.texts_to_sequences(sentences_2)
-        x1 = pad_sequences(input_sentences_1, max_sentence_length)
-        x2 = pad_sequences(input_sentences_2, max_sentence_length)
-        y = (np.array(label) - 1) / 4  # WARNING: LABEL RESCALING
+        x1 = pad_sequences(input_sentences_1, self.max_sentence_length)
+        x2 = pad_sequences(input_sentences_2, self.max_sentence_length)
+        y = np.array(label)
+        y = np.clip(y, 1, 5) # paper definition
+        y = (y - 1) / 4  # WARNING: LABEL RESCALING
         return (x1, x2, y)
 
 
-    def prepare_input_data(self, pretrain_df, train_df, rescaling_output = 1) -> (InputData, InputData):
+    def prepare_input_data(self, pretrain_df, train_df, test_df) -> (InputData, InputData):
         train_sentences_1, train_sentences_2, train_labels = self.pre_process_data(train_df)
         pretrain_sentences_1, pretrain_sentences_2, pretrain_labels = self.pre_process_data(pretrain_df)
+        test_sentences_1, test_sentences_2, test_labels = self.pre_process_data(test_df)
 
         self.tokenizer.fit_on_texts(train_sentences_1)
         self.tokenizer.fit_on_texts(train_sentences_2)
         self.tokenizer.fit_on_texts(pretrain_sentences_1)
         self.tokenizer.fit_on_texts(pretrain_sentences_2)
+        self.tokenizer.fit_on_texts(test_sentences_1)
+        self.tokenizer.fit_on_texts(test_sentences_2)
 
-        word_index = self.tokenizer.word_index
-        vocabulary_size = len(word_index)
-        LOG.info("Vocabulary created. Size: %s", vocabulary_size)
+        self.word_index = self.tokenizer.word_index
+        self.vocabulary_size = len(self.word_index)
 
         max_sentence_length = 0
         # The size of the input sequence is the size of the largest sequence of the input dataset
@@ -69,25 +72,25 @@ class ProcessInputData:
                 if (sentence_length > max_sentence_length):
                     max_sentence_length = sentence_length
 
+        self.max_sentence_length = max_sentence_length
+
         # Prepare the neural network inputs
-        (pretrain_x1, pretrain_x2, pretrain_y) = self.get_samples(pretrain_sentences_1, pretrain_sentences_2, pretrain_labels,
-                                                     max_sentence_length, rescaling_output=rescaling_output)
+        (pretrain_x1, pretrain_x2, pretrain_y) = self.get_samples(pretrain_sentences_1, pretrain_sentences_2, pretrain_labels)
 
-        (train_x1, train_x2, train_y) = self.get_samples(train_sentences_1, train_sentences_2, train_labels,
-                                                     max_sentence_length, rescaling_output=rescaling_output)
+        (train_x1, train_x2, train_y) = self.get_samples(train_sentences_1, train_sentences_2, train_labels)
 
-        pretrain_input_data =  InputData(word_index=word_index,
-                         max_sentence_length = max_sentence_length,
-                         vocab_size = vocabulary_size,
-                         x1 = pretrain_x1,
-                         x2 = pretrain_x2,
-                         y = pretrain_y)
+        (test_x1, test_x2, test_y) = self.get_samples(test_sentences_1, test_sentences_2, test_labels)
 
-        train_input_data = InputData(word_index=word_index,
-                                     max_sentence_length=max_sentence_length,
-                                     vocab_size=vocabulary_size,
-                                     x1=train_x1,
+        pretrain_input_data =  InputData(x1 = pretrain_x1,
+                                         x2 = pretrain_x2,
+                                         y = pretrain_y)
+
+        train_input_data = InputData(x1=train_x1,
                                      x2=train_x2,
                                      y=train_y)
 
-        return (pretrain_input_data, train_input_data)
+        test_input_data = InputData(x1=test_x1,
+                                     x2=test_x2,
+                                     y=test_y)
+
+        return (pretrain_input_data, train_input_data, test_input_data)

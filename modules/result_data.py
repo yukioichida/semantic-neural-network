@@ -11,11 +11,13 @@ RESULTS_DIR = os.path.join(Path(BASE_DIR).parent, 'results')
 
 class InputConfiguration:
 
-    def __init__(self, batch_size, pretrain_epoch, epoch, embedding_type):
+    def __init__(self, batch_size, pretrain_epoch, dropout, recurrent_dropout, epoch, embedding_type):
         self.batch_size = batch_size
         self.pretrain_epoch = pretrain_epoch
         self.epoch = epoch
         self.embedding_type = embedding_type
+        self.dropout = dropout
+        self.recurrent_dropout = recurrent_dropout
 
 
 class ResultData:
@@ -42,7 +44,9 @@ class ResultData:
                 'batch_size' : self.input_config.batch_size,
                 'pretrain_epoch' : self.input_config.pretrain_epoch,
                 'train_epoch': self.input_config.epoch,
-                'embedding type': self.input_config.embedding_type
+                'embedding type': self.input_config.embedding_type,
+                'dropout': self.input_config.dropout,
+                'recurrent_dropout': self.input_config.recurrent_dropout
             },
             'pearson' : self.pearson,
             'spearman' : self.spearman,

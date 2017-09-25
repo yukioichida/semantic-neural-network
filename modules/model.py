@@ -7,7 +7,7 @@ from keras.initializers import random_uniform
 
 from modules.custom_lstm import CustomLSTM
 
-def init_model(max_sequence_length, embedding_matrix,
+def init_model(max_sequence_length, embedding_matrix, dropout, recurrent_dropout,
                vocab_size, lstm_hidden_layers=50, embedding_dim = 300) -> Model:
 
     # A entrada recebe os índices das palavras no vocabulário, para fazer o lookup na tabela de embeddings
@@ -27,10 +27,8 @@ def init_model(max_sequence_length, embedding_matrix,
     bias_initializer = random_uniform(minval=-0.5, maxval=0.5)
     #base_lstm = LSTM(lstm_hidden_layers, bias_initializer=bias_initializer)
     #base_lstm = GRU(lstm_hidden_layers, implementation=2)
-    R_DROPOUT = 0.3
-    DROPOUT = 0.3
-    #base_lstm = LSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=R_DROPOUT, dropout=DROPOUT)
-    base_lstm = CustomLSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=R_DROPOUT, dropout=DROPOUT)
+    base_lstm = LSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout, dropout=dropout)
+    #base_lstm = CustomLSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout, dropout=dropout)
 
     #Muito ruim
     #base_lstm = CustomLSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=R_DROPOUT, dropout=DROPOUT, bias_initializer=bias_initializer)
