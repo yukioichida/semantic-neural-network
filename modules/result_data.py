@@ -1,4 +1,6 @@
 from pathlib import Path
+from modules.log_config import LOG
+
 import time
 import os
 import yaml
@@ -59,9 +61,9 @@ class ResultData:
     def write(self):
         timestamp = int(round(time.time() * 1000))
         yaml_filename = 'bs_%s-pe_%s-e_%s-%s.yml' % ( self.input_config.batch_size,
-                                                                                self.input_config.pretrain_epoch,
-                                                                                self.input_config.epoch,
-                                                                                timestamp )
+                                                    self.input_config.pretrain_epoch,
+                                                    self.input_config.epoch,
+                                                    timestamp )
         yaml_file = os.path.join(RESULTS_DIR, yaml_filename)
 
         with open(yaml_file, 'w') as file:
@@ -70,20 +72,18 @@ class ResultData:
 
 
 def create_output(y_pred, y_test, mae, input_config:InputConfiguration, obs = '',scale=5):
-    samples = y_pred.ravel()[:]
-    gt = y_test[:]
+    samples = y_pred.ravel()[:20]
+    gt = y_test[:20]
 
     y_p = y_pred.ravel()
     y_t = y_test
-    print(len(y_p))
-    print(len(y_t))
     pr_val = stats.pearsonr(y_p, y_t)[0]
     sr_val = stats.spearmanr(y_p, y_t)[0]
     mse_val = mse(y_p, y_t)
 
-    print(' Pearson: %f' % (pr_val))
-    print(' Spearman: %f' % (sr_val))
-    print(' MSE: %f' % (mse_val))
+    LOG.info(' Pearson: %f' % (pr_val))
+    LOG.info(' Spearman: %f' % (sr_val))
+    LOG.info(' MSE: %f' % (mse_val))
 
     result = ResultData(np.asscalar(pr_val), np.asscalar(sr_val), np.asscalar(mse_val), np.asscalar(mae), input_config)
     result.add_results(samples, gt)
