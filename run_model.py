@@ -33,7 +33,7 @@ LOG.info("Max Sentence Length %s | Vocab Size: %s" % (max_sentence_length, vocab
 #=======================================
 #   EMBEDDING MATRIX FOR WORD EMBEDDINGS
 #=======================================
-embedding_matrix = load_embedding_matrix(dataset.name(), EMBEDDING_FILE, word_index, binary=EMBEDDING_BINARY)
+embedding_matrix = load_embedding_matrix("WORD2VEC", EMBEDDING_FILE, word_index, binary=EMBEDDING_BINARY)
 # =========================================
 #     MAIN MODEL
 # =========================================
