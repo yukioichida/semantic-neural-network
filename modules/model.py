@@ -27,8 +27,8 @@ def init_model(max_sequence_length, embedding_matrix, dropout, recurrent_dropout
     bias_initializer = random_uniform(minval=-0.5, maxval=0.5)
     #base_lstm = LSTM(lstm_hidden_layers, bias_initializer=bias_initializer)
     #base_lstm = GRU(lstm_hidden_layers, implementation=2)
-    base_lstm = LSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout, dropout=dropout)
-    #base_lstm = CustomLSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout, dropout=dropout)
+    #base_lstm = LSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout, dropout=dropout)
+    base_lstm = CustomLSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout, dropout=dropout)
 
     #Muito ruim
     #base_lstm = CustomLSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=R_DROPOUT, dropout=DROPOUT, bias_initializer=bias_initializer)

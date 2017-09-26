@@ -39,14 +39,14 @@ EMBEDDING_BINARY = EMBEDDING_FILE == WORD2VEC
 EMBEDDING_DIM = 300 # dimension of the word embedding vectors
 LSTM_HIDDEN_LAYERS = 50 # by the paper
 
-BATCH_SIZE = 64
-PRETRAIN_EPOCHS = 65
+BATCH_SIZE = 32
+PRETRAIN_EPOCHS = 50
 TRAIN_EPOCHS = 320
 
-DROPOUT = 0.3
-RECURRENT_DROPOUT = 0.3
+DROPOUT = 0.35
+RECURRENT_DROPOUT = 0.35
 
-PRETRAIN=True
+PRETRAIN=False
 TRAIN=True
 
 pretrain_dataframe = STSDataset(SICK_PRETRAIN_FILE).data_frame()
@@ -54,12 +54,10 @@ pretrain_dataframe = STSDataset(SICK_PRETRAIN_FILE).data_frame()
 dataset = SICKFullDataset(SICK_TRAIN_FILE)
 sts_dataset = STSDataset(ALL_STS_FILE)
 #sts_dataset = STSDataset(STS_FILE)
-#sick_dataset = SICKDataset(SICK_TRAIN_FILE)
-#sick_dataset = SICKFullDataset(SICK_TRAIN_FILE)
 
-train_dataframe = pd.concat([dataset.data_frame(), sts_dataset.data_frame()], ignore_index=True)
-#train_dataframe = dataset.data_frame()
-LOG.info("DF size = %s" % (len(train_dataframe.index)))
+train_dataframe = dataset.data_frame()
+#train_dataframe = pd.concat([dataset.data_frame(), sts_dataset.data_frame()], ignore_index=True)
+LOG.info("Train size = %s" % (len(train_dataframe.index)))
 
 test_df = SICKFullDataset(SICK_TEST_FILE).data_frame()
 
