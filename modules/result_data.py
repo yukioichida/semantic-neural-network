@@ -1,4 +1,4 @@
-from pathlib import Path
+# -*- coding: utf-8 -*-
 from modules.log_config import LOG
 
 import time
@@ -8,8 +8,7 @@ import scipy.stats as stats
 import numpy as np
 from sklearn.metrics import mean_squared_error as mse
 
-BASE_DIR = os.path.dirname(__file__)
-RESULTS_DIR = os.path.join(Path(BASE_DIR).parent, 'results')
+RESULTS_DIR = 'results'
 
 class InputConfiguration:
 
@@ -24,7 +23,7 @@ class InputConfiguration:
 
 class ResultData:
 
-    def __init__(self, pearson, spearman, mse, mae, input_config:InputConfiguration):
+    def __init__(self, pearson, spearman, mse, mae, input_config):
         self.pearson = pearson
         self.spearman = spearman
         self.mse = mse
@@ -70,8 +69,7 @@ class ResultData:
             yaml.dump(self.to_yaml(), file, default_flow_style=False)
 
 
-
-def create_output(y_pred, y_test, mae, input_config:InputConfiguration, obs = '',scale=5):
+def create_output(y_pred, y_test, mae, input_config, obs = '',scale=5):
     samples = y_pred.ravel()[:20]
     gt = y_test[:20]
 

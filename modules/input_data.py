@@ -1,9 +1,9 @@
-from modules.prepare_text import prepare_text
-from modules.log_config import LOG
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-
+# -*- coding: utf-8 -*-
 import numpy as np
+from keras.preprocessing.sequence import pad_sequences
+from keras.preprocessing.text import Tokenizer
+
+from modules.prepare_text import prepare_text
 
 '''
     Classes and components
@@ -34,7 +34,7 @@ class ProcessInputData:
             label = float(row['label'])
             labels.append(round(label, 1))
 
-        return (sentences_1, sentences_2, labels)
+        return sentences_1, sentences_2, labels
 
 
     def get_samples(self, sentences_1, sentences_2, label, rescaling_output=1):
@@ -46,10 +46,10 @@ class ProcessInputData:
         y = np.array(label)
         y = np.clip(y, 1, 5) # paper definition
         y = (y - 1) / 4  # WARNING: LABEL RESCALING
-        return (x1, x2, y)
+        return x1, x2, y
 
 
-    def prepare_input_data(self, pretrain_df, train_df, test_df) -> (InputData, InputData):
+    def prepare_input_data(self, pretrain_df, train_df, test_df):
         train_sentences_1, train_sentences_2, train_labels = self.pre_process_data(train_df)
         pretrain_sentences_1, pretrain_sentences_2, pretrain_labels = self.pre_process_data(pretrain_df)
         test_sentences_1, test_sentences_2, test_labels = self.pre_process_data(test_df)
@@ -69,7 +69,7 @@ class ProcessInputData:
         for sentence_vec in [train_sentences_1, train_sentences_2, pretrain_sentences_1, pretrain_sentences_2]:
             for sentence in sentence_vec:
                 sentence_length = len(sentence.split())
-                if (sentence_length > max_sentence_length):
+                if sentence_length > max_sentence_length:
                     max_sentence_length = sentence_length
 
         self.max_sentence_length = max_sentence_length
@@ -81,16 +81,16 @@ class ProcessInputData:
 
         (test_x1, test_x2, test_y) = self.get_samples(test_sentences_1, test_sentences_2, test_labels)
 
-        pretrain_input_data =  InputData(x1 = pretrain_x1,
-                                         x2 = pretrain_x2,
-                                         y = pretrain_y)
+        pretrain_input_data = InputData(x1=pretrain_x1,
+                                         x2=pretrain_x2,
+                                         y=pretrain_y)
 
         train_input_data = InputData(x1=train_x1,
                                      x2=train_x2,
                                      y=train_y)
 
         test_input_data = InputData(x1=test_x1,
-                                     x2=test_x2,
-                                     y=test_y)
+                                    x2=test_x2,
+                                    y=test_y)
 
-        return (pretrain_input_data, train_input_data, test_input_data)
+        return pretrain_input_data, train_input_data, test_input_data

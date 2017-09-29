@@ -1,18 +1,17 @@
+# -*- coding: utf-8 -*-
 from modules.log_config import LOG
 
 from gensim.models.keyedvectors import KeyedVectors
-from pathlib import Path
 
 import os
 import ntpath
 import numpy as np
 
-BASE_DIR = os.path.dirname(__file__)
-PRE_EMBEDDING_MATRIX_DIR = os.path.join(Path(BASE_DIR).parent, 'embedding_matrix')
+PRE_EMBEDDING_MATRIX_DIR = 'embedding_matrix'
 
 def load_embedding_matrix(dataset_name, embedding_file, word_index, embedding_dim = 300, binary = False):
     LOG.info('Loading embedding model from %s', embedding_file)
-    _ , embedding_name = ntpath.split(embedding_file)
+    _, embedding_name = ntpath.split(embedding_file)
     embedding_matrix_file = os.path.join(PRE_EMBEDDING_MATRIX_DIR, dataset_name + '_' + embedding_name + '.npy')
 
     if os.path.exists(embedding_matrix_file):

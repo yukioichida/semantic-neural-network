@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 from pandas import DataFrame
 
 class Dataset:
 
-    def data_frame(self) -> DataFrame:
+    def data_frame(self):
         return self.df
 
 

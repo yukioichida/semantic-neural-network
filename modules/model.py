@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from keras.models import Model
 from keras.layers import Input, Embedding, Dropout, Lambda, Merge
 from keras.layers.recurrent import GRU, LSTM
@@ -7,7 +8,7 @@ from keras.initializers import random_uniform
 from modules.custom_lstm import CustomLSTM
 
 def init_model(max_sequence_length, embedding_matrix, dropout, recurrent_dropout,
-               vocab_size, lstm_hidden_layers=50, embedding_dim = 300) -> Model:
+               vocab_size, lstm_hidden_layers=50, embedding_dim = 300):
 
     # A entrada recebe os índices das palavras no vocabulário, para fazer o lookup na tabela de embeddings
     left_input = Input(shape=(max_sequence_length,), dtype='int32')
