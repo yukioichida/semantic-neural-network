@@ -10,17 +10,17 @@ import numpy as np
 PRE_EMBEDDING_MATRIX_DIR = 'embedding_matrix'
 
 
-def load_embedding_matrix(dataset_name, embedding_file, word_index, embedding_dim = 300, binary = False):
-
+def load_embedding_matrix(dataset_name, embedding_file, word_index, embedding_dim=300, binary=False):
     LOG.info('Loading embedding model from %s', embedding_file)
     vocab_size = len(word_index) + 1
     _, embedding_name = ntpath.split(embedding_file)
-    embedding_matrix_file = dataset_name + '_' + embedding_name + '_'+str(vocab_size)+'.npy'
-    cache_file = os.path.join(PRE_EMBEDDING_MATRIX_DIR, embedding_matrix_file)
+    embedding_matrix_file = dataset_name + '_' + embedding_name + '_' + str(vocab_size) + '.npy'
+    embedding_cache_file = os.path.join(PRE_EMBEDDING_MATRIX_DIR, embedding_matrix_file)
 
-    if os.path.exists(cache_file):
+    # Verify if cache exists
+    if os.path.exists(embedding_cache_file):
         LOG.info('Loading existing embedding matrix')
-        embedding_matrix = np.loadtxt(cache_file)
+        embedding_matrix = np.loadtxt(embedding_cache_file)
     else:
         LOG.info('File %s not found. Loading new embedding matrix from: %s' % (embedding_matrix_file, embedding_name))
         embedding_model = KeyedVectors.load_word2vec_format(embedding_file, binary=binary)
@@ -39,7 +39,7 @@ def load_embedding_matrix(dataset_name, embedding_file, word_index, embedding_di
 
         LOG.info('Embedding matrix as been created, removing embedding model from memory')
         del embedding_model
-        LOG.info('Saving matrix in file %s' % (cache_file))
-        np.savetxt(cache_file, embedding_matrix)
+        LOG.info('Saving matrix in file ' + embedding_cache_file)
+        np.savetxt(embedding_cache_file, embedding_matrix)
 
     return embedding_matrix

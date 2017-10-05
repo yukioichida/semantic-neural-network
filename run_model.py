@@ -58,7 +58,8 @@ if PRETRAIN:
     malstm.fit([pretrain_input.x1, pretrain_input.x2], pretrain_input.y,
                epochs=PRETRAIN_EPOCHS, batch_size=BATCH_SIZE,
                callbacks=callbacks,
-               validation_split=0.3)
+               validation_split=0.3,
+               verbose=FIT_VERBOSE)
 
     print("\nPré Training time finished.\n{} epochs in {}".format(PRETRAIN_EPOCHS,
                                                                   datetime.timedelta(seconds=time() - training_time)))
@@ -74,7 +75,8 @@ if TRAIN:
                epochs=TRAIN_EPOCHS,
                batch_size=BATCH_SIZE,
                validation_data=([val_input.x1, val_input.x2], val_input.y),
-               callbacks=callbacks)
+               callbacks=callbacks,
+               verbose=FIT_VERBOSE)
 
     print("\nTraining time finished.\n{} epochs in {}".format(TRAIN_EPOCHS,
                                                               datetime.timedelta(seconds=time() - training_time)))
@@ -85,11 +87,8 @@ if TRAIN:
 # PREDICT
 # ================
 y_pred = malstm.predict([test_input.x1, test_input.x2])
-input_config = InputConfiguration(batch_size=BATCH_SIZE,
-                                  pretrain_epoch=PRETRAIN_EPOCHS,
-                                  epoch=TRAIN_EPOCHS,
-                                  embedding_type="WORD2VEC",
-                                  dropout=DROPOUT,
-                                  recurrent_dropout=RECURRENT_DROPOUT)
 
-create_output(y_pred, test_input.y, mae, input_config, obs=str(sys.argv))
+# ================
+# CREATE OUTPUT FILE
+# ================
+create_output(y_pred, test_input.y, mae, obs=str(sys.argv))

@@ -14,8 +14,10 @@ GLOVE_FILE = 'C:\dev_env\ml\datasets\glove.6B\\glove.6B.300d.gensim.txt'
 FAST_TEXT_FILE = 'C:\dev_env\ml\\datasets\\fasttext_english\\wiki.en.vec'
 
 EMBEDDING_FILE = WORD2VEC_FILE
+EMBEDDING_NAME = "WORD2VEC"
 EMBEDDING_BINARY = EMBEDDING_FILE == WORD2VEC_FILE
-EMBEDDING_DIM = 300  # dimension of the word embedding vectors
+EMBEDDING_DIM = 300  # dimension of the word embedding vectors"
+
 LSTM_HIDDEN_LAYERS = 50  # by the paper
 
 BATCH_SIZE = 32
@@ -23,9 +25,11 @@ PRETRAIN_EPOCHS = 50
 TRAIN_EPOCHS = 320
 
 DROPOUT = 0.0
-RECURRENT_DROPOUT = 0.0
+RECURRENT_DROPOUT = 0.2
 
 PRETRAIN = True
 TRAIN = True
 
 REMOVE_STOPWORDS = False
+
+FIT_VERBOSE = 2

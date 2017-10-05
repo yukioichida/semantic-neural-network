@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from modules.log_config import LOG
+from modules.configs import *
 
 import time
 import os
@@ -10,25 +11,14 @@ from sklearn.metrics import mean_squared_error as mse
 
 RESULTS_DIR = 'results'
 
-class InputConfiguration:
-
-    def __init__(self, batch_size, pretrain_epoch, dropout, recurrent_dropout, epoch, embedding_type):
-        self.batch_size = batch_size
-        self.pretrain_epoch = pretrain_epoch
-        self.epoch = epoch
-        self.embedding_type = embedding_type
-        self.dropout = dropout
-        self.recurrent_dropout = recurrent_dropout
-
 
 class ResultData:
 
-    def __init__(self, pearson, spearman, mse, mae, input_config):
+    def __init__(self, pearson, spearman, mse, mae):
         self.pearson = pearson
         self.spearman = spearman
         self.mse = mse
         self.mae = mae
-        self.input_config = input_config
 
     def add_results(self, y_pred, y_val):
         samples_results = []
@@ -41,16 +31,18 @@ class ResultData:
 
     def to_yaml(self):
         return {
-            'input config' : {
-                'batch_size' : self.input_config.batch_size,
-                'pretrain_epoch' : self.input_config.pretrain_epoch,
-                'train_epoch': self.input_config.epoch,
-                'embedding type': self.input_config.embedding_type,
-                'dropout': self.input_config.dropout,
-                'recurrent_dropout': self.input_config.recurrent_dropout
+            'input config': {
+                'batch_size': BATCH_SIZE,
+                'pretrain': PRETRAIN,
+                'pretrain_epoch': PRETRAIN_EPOCHS,
+                'train_epoch': TRAIN_EPOCHS,
+                'embedding type': EMBEDDING_NAME,
+                'dropout': DROPOUT,
+                'recurrent_dropout': RECURRENT_DROPOUT,
+                'stopwords': REMOVE_STOPWORDS
             },
-            'pearson' : self.pearson,
-            'spearman' : self.spearman,
+            'pearson': self.pearson,
+            'spearman': self.spearman,
             'mean squared error': self.mse,
             'mean absolute error': self.mae,
             'results': self.results,
@@ -59,17 +51,17 @@ class ResultData:
 
     def write(self):
         timestamp = int(round(time.time() * 1000))
-        yaml_filename = 'bs_%s-pe_%s-e_%s-%s.yml' % ( self.input_config.batch_size,
-                                                    self.input_config.pretrain_epoch,
-                                                    self.input_config.epoch,
-                                                    timestamp )
+        yaml_filename = 'bs_%s-pe_%s-e_%s-%s.yml' % (BATCH_SIZE,
+                                                     PRETRAIN_EPOCHS,
+                                                     TRAIN_EPOCHS,
+                                                     timestamp)
         yaml_file = os.path.join(RESULTS_DIR, yaml_filename)
 
         with open(yaml_file, 'w') as file:
             yaml.dump(self.to_yaml(), file, default_flow_style=False)
 
 
-def create_output(y_pred, y_test, mae, input_config, obs = '',scale=5):
+def create_output(y_pred, y_test, mae, obs=''):
     samples = y_pred.ravel()[:20]
     gt = y_test[:20]
 
@@ -83,8 +75,7 @@ def create_output(y_pred, y_test, mae, input_config, obs = '',scale=5):
     LOG.info(' Spearman: %f' % (sr_val))
     LOG.info(' MSE: %f' % (mse_val))
 
-    result = ResultData(np.asscalar(pr_val), np.asscalar(sr_val), np.asscalar(mse_val), np.asscalar(mae), input_config)
+    result = ResultData(np.asscalar(pr_val), np.asscalar(sr_val), np.asscalar(mse_val), np.asscalar(mae))
     result.add_results(samples, gt)
     result.observation(obs)
     result.write()
-
