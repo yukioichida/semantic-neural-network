@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from modules.configs import REMOVE_STOPWORDS
 import re
 from nltk.corpus import stopwords
 
 
-def prepare_text(text, remove_stopwords=True):
+def prepare_text(text, remove_stopwords=REMOVE_STOPWORDS):
     ''' Pre process and convert texts to a list of words '''
     text = str(text.encode('utf-8'))
     text = text.lower()

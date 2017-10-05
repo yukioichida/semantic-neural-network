@@ -16,16 +16,17 @@ from keras.optimizers import Adadelta
 
 callbacks = []
 
-pretrain_dataframe = STSDataset(SICK_PRETRAIN_FILE).data_frame()
-train_dataframe = SICKFullDataset(SICK_TRAIN_FILE).data_frame()
+pretrain_df = STSDataset(SICK_PRETRAIN_FILE).data_frame()
+train_df = SICKFullDataset(SICK_TRAIN_FILE).data_frame()
+val_df = SICKFullDataset(SICK_TRIAL_FILE).data_frame()
 test_df = SICKFullDataset(SICK_TEST_FILE).data_frame()
-LOG.info("Train size = %s" % (len(train_dataframe.index)))
+LOG.info("Train size = %s" % (len(train_df.index)))
 
 # ======================
 # PREPARE INPUT DATA
 # ======================
 process = ProcessInputData()
-pretrain_input, train_input, test_input = process.prepare_input_data(pretrain_dataframe, train_dataframe, test_df)
+pretrain_input, train_input, val_input, test_input = process.prepare_input_data(pretrain_df, train_df, val_df, test_df)
 
 max_sentence_length = process.max_sentence_length
 vocab_size = process.vocabulary_size + 1
@@ -46,7 +47,6 @@ malstm.compile(loss='mean_squared_error',
                optimizer=optimizer,
                metrics=['accuracy', 'mean_absolute_error'])
 
-x1_test, x2_test, y_test = test_input.x1, test_input.x2, test_input.y
 # =====================================
 # ============= PRE TRAIN =============
 # =====================================
@@ -56,11 +56,12 @@ if PRETRAIN:
     training_time = time()
 
     malstm.fit([pretrain_input.x1, pretrain_input.x2], pretrain_input.y,
-               epochs=PRETRAIN_EPOCHS,  batch_size=BATCH_SIZE,
+               epochs=PRETRAIN_EPOCHS, batch_size=BATCH_SIZE,
                callbacks=callbacks,
-               validation_data=([x1_test, x2_test], y_test))
+               validation_split=0.3)
 
-    print("\nPré Training time finished.\n{} epochs in {}".format(PRETRAIN_EPOCHS, datetime.timedelta(seconds=time()-training_time)))
+    print("\nPré Training time finished.\n{} epochs in {}".format(PRETRAIN_EPOCHS,
+                                                                  datetime.timedelta(seconds=time() - training_time)))
 
 # =================================
 # ============= TRAIN =============
@@ -72,17 +73,18 @@ if TRAIN:
     malstm.fit([x1_train, x2_train], y_train,
                epochs=TRAIN_EPOCHS,
                batch_size=BATCH_SIZE,
-               validation_data=([x1_test, x2_test], y_test),
+               validation_data=([val_input.x1, val_input.x2], val_input.y),
                callbacks=callbacks)
 
-    print("\nTraining time finished.\n{} epochs in {}".format(TRAIN_EPOCHS, datetime.timedelta(seconds=time()-training_time)))
-    score, acc, mae = malstm.evaluate([x1_test, x2_test], y_test, batch_size=BATCH_SIZE)
+    print("\nTraining time finished.\n{} epochs in {}".format(TRAIN_EPOCHS,
+                                                              datetime.timedelta(seconds=time() - training_time)))
+    score, acc, mae = malstm.evaluate([val_input.x1, val_input.x2], val_input.y, batch_size=BATCH_SIZE)
     print("\nTest score: %.3f, accuracy: %.3f" % (score, acc))
 
 # ================
 # PREDICT
 # ================
-y_pred = malstm.predict([x1_test, x2_test])
+y_pred = malstm.predict([test_input.x1, test_input.x2])
 input_config = InputConfiguration(batch_size=BATCH_SIZE,
                                   pretrain_epoch=PRETRAIN_EPOCHS,
                                   epoch=TRAIN_EPOCHS,
@@ -90,5 +92,4 @@ input_config = InputConfiguration(batch_size=BATCH_SIZE,
                                   dropout=DROPOUT,
                                   recurrent_dropout=RECURRENT_DROPOUT)
 
-create_output(y_pred, y_test, mae, input_config, obs=str(sys.argv))
-
+create_output(y_pred, test_input.y, mae, input_config, obs=str(sys.argv))
