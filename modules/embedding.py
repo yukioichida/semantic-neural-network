@@ -2,7 +2,7 @@
 from modules.log_config import LOG
 
 from gensim.models.keyedvectors import KeyedVectors
-
+from modules.configs import *
 import os
 import ntpath
 import numpy as np
@@ -10,11 +10,10 @@ import numpy as np
 PRE_EMBEDDING_MATRIX_DIR = 'embedding_matrix'
 
 
-def load_embedding_matrix(dataset_name, embedding_file, word_index, embedding_dim=300, binary=False):
-    LOG.info('Loading embedding model from %s', embedding_file)
+def load_embedding_matrix(dataset_name, word_index, embedding_dim=300):
+    LOG.info('Loading embedding model from %s', EMBEDDING_FILE)
     vocab_size = len(word_index) + 1
-    _, embedding_name = ntpath.split(embedding_file)
-    embedding_matrix_file = dataset_name + '_' + embedding_name + '_' + str(vocab_size) + '.npy'
+    embedding_matrix_file = dataset_name + '_' + EMBEDDING_NAME + '_' + str(vocab_size) + '.npy'
     embedding_cache_file = os.path.join(PRE_EMBEDDING_MATRIX_DIR, embedding_matrix_file)
 
     # Verify if cache exists
@@ -22,8 +21,8 @@ def load_embedding_matrix(dataset_name, embedding_file, word_index, embedding_di
         LOG.info('Loading existing embedding matrix')
         embedding_matrix = np.loadtxt(embedding_cache_file)
     else:
-        LOG.info('File %s not found. Loading new embedding matrix from: %s' % (embedding_matrix_file, embedding_name))
-        embedding_model = KeyedVectors.load_word2vec_format(embedding_file, binary=binary)
+        LOG.info('File %s not found. Loading new embedding matrix from: %s' % (embedding_matrix_file, EMBEDDING_NAME))
+        embedding_model = KeyedVectors.load_word2vec_format(EMBEDDING_FILE, binary=EMBEDDING_BINARY)
 
         embedding_matrix = 1 * np.random.randn(vocab_size, embedding_dim)  # This will be the embedding matrix
         embedding_matrix[0] = 0  # So that the padding will be ignored

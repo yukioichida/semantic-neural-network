@@ -5,7 +5,7 @@ from modules.input_data import ProcessInputData
 from modules.datasets import *
 from modules.model import init_model
 from modules.embedding import load_embedding_matrix
-from modules.result_data import InputConfiguration, create_output
+from modules.result_data import create_output
 
 import datetime
 import sys
@@ -35,7 +35,7 @@ LOG.info("Max Sentence Length %s | Vocab Size: %s" % (max_sentence_length, vocab
 # =======================================
 #   EMBEDDING MATRIX FOR WORD EMBEDDINGS
 # =======================================
-embedding_matrix = load_embedding_matrix("WORD2VEC", EMBEDDING_FILE, word_index, binary=EMBEDDING_BINARY)
+embedding_matrix = load_embedding_matrix("SICK", word_index)
 # =========================================
 #     MAIN MODEL
 # =========================================
@@ -88,7 +88,7 @@ if TRAIN:
 # ================
 y_pred = malstm.predict([test_input.x1, test_input.x2])
 
-# ================
+# =========================
 # CREATE OUTPUT FILE
-# ================
+# =========================
 create_output(y_pred, test_input.y, mae, obs=str(sys.argv))

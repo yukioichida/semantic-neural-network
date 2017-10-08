@@ -62,11 +62,14 @@ class ResultData:
 
 
 def create_output(y_pred, y_test, mae, obs=''):
-    samples = y_pred.ravel()[:20]
-    gt = y_test[:20]
 
     y_p = y_pred.ravel()
+    y_p = (y_p + 1) * 4
     y_t = y_test
+    y_t = (y_t + 1) * 4
+
+    samples = y_p[:20]
+    gt = y_t[:20]
     pr_val = stats.pearsonr(y_p, y_t)[0]
     sr_val = stats.spearmanr(y_p, y_t)[0]
     mse_val = mse(y_p, y_t)
