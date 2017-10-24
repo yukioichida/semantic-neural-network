@@ -2,9 +2,9 @@ embedding_matrix/**
 results/**
 saved_models/**
 
-!embedding_matrix/
-!results/
-!saved_models/
+!embedding_matrix/.gitkeep
+!results/.gitkeep
+!saved_models/.gitkeep
 
 
 # Byte-compiled / optimized / DLL files
