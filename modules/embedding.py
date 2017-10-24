@@ -26,6 +26,7 @@ def load_embedding_matrix(dataset_name, word_index, embedding_dim=300):
 
         embedding_matrix = 1 * np.random.randn(vocab_size, embedding_dim)  # This will be the embedding matrix
         embedding_matrix[0] = 0  # So that the padding will be ignored
+        unk_tokens = 0
 
         LOG.info('Creating the embedding matrix')
         for word, idx in word_index.items():
@@ -35,8 +36,12 @@ def load_embedding_matrix(dataset_name, word_index, embedding_dim=300):
                 embedding_vector = embedding_model.word_vec(word)
                 if embedding_vector is not None:
                     embedding_matrix[idx] = embedding_vector
+                else:
+                    embedding_matrix[idx] = 0
+                    unk_tokens += 1
 
         LOG.info('Embedding matrix as been created, removing embedding model from memory')
+        LOG.info('Unknown tokens = ' + str(unk_tokens))
         del embedding_model
         LOG.info('Saving matrix in file ' + embedding_cache_file)
         np.savetxt(embedding_cache_file, embedding_matrix)

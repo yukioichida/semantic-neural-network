@@ -1,5 +1,6 @@
-embedding_matrix/
-results/
+embedding_matrix/**
+results/**
+saved_models/**
 
 
 # Byte-compiled / optimized / DLL files

@@ -9,8 +9,8 @@ from modules.prepare_text import prepare_text
     Classes and components
 '''
 
-class InputData:
 
+class InputData:
     def __init__(self, x1, x2, y):
         self.x1 = x1
         self.x2 = x2
@@ -18,13 +18,11 @@ class InputData:
 
 
 class ProcessInputData:
-
     def __init__(self):
         self.tokenizer = Tokenizer()
         self.max_sentence_length = -1
 
-
-    def pre_process_data(self,df):
+    def pre_process_data(self, df):
         sentences_1 = []
         sentences_2 = []
         labels = []
@@ -36,7 +34,6 @@ class ProcessInputData:
 
         return sentences_1, sentences_2, labels
 
-
     def get_samples(self, sentences_1, sentences_2, label, rescaling_output=1):
         # Prepare the neural network inputs
         input_sentences_1 = self.tokenizer.texts_to_sequences(sentences_1)
@@ -44,14 +41,12 @@ class ProcessInputData:
         x1 = pad_sequences(input_sentences_1, self.max_sentence_length)
         x2 = pad_sequences(input_sentences_2, self.max_sentence_length)
         y = np.array(label)
-        y = np.clip(y, 1, 5) # paper definition
+        y = np.clip(y, 1, 5)  # paper definition
         y = (y - 1) / 4  # WARNING: LABEL RESCALING
         return InputData(x1, x2, y)
 
-
-    def prepare_input_data(self, pretrain_df, train_df, val_df, test_df):
+    def prepare_input_data(self, pretrain_df, train_df, test_df):
         train_sentences_1, train_sentences_2, train_labels = self.pre_process_data(train_df)
-        val_sentences_1, val_sentences_2, val_labels = self.pre_process_data(val_df)
         pretrain_sentences_1, pretrain_sentences_2, pretrain_labels = self.pre_process_data(pretrain_df)
         test_sentences_1, test_sentences_2, test_labels = self.pre_process_data(test_df)
 
@@ -61,8 +56,6 @@ class ProcessInputData:
         self.tokenizer.fit_on_texts(pretrain_sentences_2)
         self.tokenizer.fit_on_texts(test_sentences_1)
         self.tokenizer.fit_on_texts(test_sentences_2)
-        self.tokenizer.fit_on_texts(val_sentences_1)
-        self.tokenizer.fit_on_texts(val_sentences_2)
 
         self.word_index = self.tokenizer.word_index
         self.vocabulary_size = len(self.word_index)
@@ -71,7 +64,7 @@ class ProcessInputData:
         # The size of the input sequence is the size of the largest sequence of the input dataset
         for sentence_vec in [train_sentences_1, train_sentences_2,
                              pretrain_sentences_1, pretrain_sentences_2,
-                             val_sentences_1, val_sentences_2]:
+                             test_sentences_1, test_sentences_2]:
             for sentence in sentence_vec:
                 sentence_length = len(sentence.split())
                 if sentence_length > max_sentence_length:
@@ -83,6 +76,5 @@ class ProcessInputData:
         pretrain_input_data = self.get_samples(pretrain_sentences_1, pretrain_sentences_2, pretrain_labels)
         train_input_data = self.get_samples(train_sentences_1, train_sentences_2, train_labels)
         test_input_data = self.get_samples(test_sentences_1, test_sentences_2, test_labels)
-        val_input_data = self.get_samples(val_sentences_1, val_sentences_2, val_labels)
 
-        return pretrain_input_data, train_input_data, val_input_data, test_input_data
+        return pretrain_input_data, train_input_data, test_input_data

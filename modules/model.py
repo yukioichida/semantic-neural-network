@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 from keras.models import Model
-from keras.layers import Input, Embedding, Dropout, Lambda, Merge
+from keras.layers import Input, Embedding, Lambda
 from keras.layers.recurrent import GRU, LSTM
 from keras import backend as K
-from keras.initializers import random_uniform
-
-from modules.custom_lstm import CustomLSTM
 
 
 def init_model(max_sequence_length, embedding_matrix, dropout, recurrent_dropout,
@@ -23,14 +20,12 @@ def init_model(max_sequence_length, embedding_matrix, dropout, recurrent_dropout
     left_encoder = embedding_layer(left_input)
     right_encoder = embedding_layer(right_input)
 
-    # LSTM
-    # bias_initializer = random_uniform(minval=-0.5, maxval=0.5)
-    base_lstm = GRU(lstm_hidden_layers, implementation=2)
-    # base_lstm = LSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout, dropout=dropout)
-    # base_lstm = CustomLSTM(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout, dropout=dropout)
+    # Recurrent Layer
+    #recurrent_layer = GRU(lstm_hidden_layers, implementation=2)
+    recurrent_layer = LSTM(lstm_hidden_layers, implementation=2)
 
-    left_lstm = base_lstm(left_encoder)
-    right_lstm = base_lstm(right_encoder)
+    left_lstm = recurrent_layer(left_encoder)
+    right_lstm = recurrent_layer(right_encoder)
 
     def out_shape(shapes):
         return (None, 1)

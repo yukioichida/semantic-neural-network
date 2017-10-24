@@ -13,21 +13,20 @@ RESULTS_DIR = 'results'
 
 
 class ResultData:
-
-    def __init__(self, pearson, spearman, mse, mae):
+    def __init__(self, pearson, spearman, mse, mae, obs, duration, model_file):
         self.pearson = pearson
         self.spearman = spearman
         self.mse = mse
+        self.obs = obs
+        self.duration = duration
         self.mae = mae
+        self.model_file = model_file
 
     def add_results(self, y_pred, y_val):
         samples_results = []
         for i in range(0, len(y_pred)):
             samples_results.append('%s - %s' % (y_pred[i], y_val[i]))
         self.results = samples_results
-
-    def observation(self, obs):
-        self.obs = obs
 
     def to_yaml(self):
         return {
@@ -46,7 +45,9 @@ class ResultData:
             'mean squared error': self.mse,
             'mean absolute error': self.mae,
             'results': self.results,
-            'obs': self.obs
+            'duration': str(self.duration),
+            'obs': self.obs,
+            'model_file': self.model_file
         }
 
     def write(self):
@@ -61,12 +62,11 @@ class ResultData:
             yaml.dump(self.to_yaml(), file, default_flow_style=False)
 
 
-def create_output(y_pred, y_test, mae, obs=''):
-
+def create_output(y_pred, y_test, mae, duration, model_file, obs=''):
     y_p = y_pred.ravel()
-    y_p = (y_p + 1) * 4
+    y_p = (y_p * 4) + 1
     y_t = y_test
-    y_t = (y_t + 1) * 4
+    y_t = (y_t * 4) + 1
 
     samples = y_p[:20]
     gt = y_t[:20]
@@ -78,7 +78,7 @@ def create_output(y_pred, y_test, mae, obs=''):
     LOG.info(' Spearman: %f' % (sr_val))
     LOG.info(' MSE: %f' % (mse_val))
 
-    result = ResultData(np.asscalar(pr_val), np.asscalar(sr_val), np.asscalar(mse_val), np.asscalar(mae))
+    result = ResultData(np.asscalar(pr_val), np.asscalar(sr_val), np.asscalar(mse_val), np.asscalar(mae),
+                        obs, duration, model_file)
     result.add_results(samples, gt)
-    result.observation(obs)
     result.write()
