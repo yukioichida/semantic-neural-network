@@ -2,6 +2,10 @@ embedding_matrix/**
 results/**
 saved_models/**
 
+!embedding_matrix/
+!results/
+!saved_models/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
