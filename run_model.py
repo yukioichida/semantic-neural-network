@@ -6,6 +6,7 @@ from modules.datasets import *
 from modules.model import init_model
 from modules.embedding import load_embedding_matrix
 from modules.result_data import create_output
+from modules.plot_result import plot_fit_history
 
 import datetime
 import os
@@ -13,14 +14,16 @@ import sys
 import numpy as np
 from time import time
 
-from keras.optimizers import Adadelta
+from keras.optimizers import Adadelta, Adagrad
 
 callbacks = []
 
 pretrain_df = STSDataset(SICK_PRETRAIN_FILE).data_frame()
-# train_df = SICKFullDataset(SICK_TRAIN_FILE).data_frame()
 
-train_df = STSDataset(SICK_AUGMENTED_FILE).data_frame()
+train_df = SICKFullDataset(SICK_TRAIN_FILE).data_frame()
+# train_df = STSDataset(SICK_AUGMENTED_FILE).data_frame()
+# train_df = STSDataset(SICK_AUGMENTED_NOUN_FILE).data_frame()
+
 val_df = SICKFullDataset(SICK_TRIAL_FILE).data_frame()
 train_df = pd.concat([train_df, val_df])
 test_df = SICKFullDataset(SICK_TEST_FILE).data_frame()
@@ -46,6 +49,7 @@ embedding_matrix = load_embedding_matrix("SICK", word_index)
 malstm = init_model(max_sentence_length, embedding_matrix, DROPOUT, RECURRENT_DROPOUT, vocab_size)
 gradient_clipping_norm = 1.6
 optimizer = Adadelta(lr=LR, clipnorm=gradient_clipping_norm)
+# optimizer = Adagrad(lr=0.01, clipnorm=gradient_clipping_norm)
 malstm.compile(loss='mean_squared_error',
                optimizer=optimizer)
 
@@ -69,19 +73,18 @@ if PRETRAIN:
     print("\nPré Training time finished.\n{} epochs in {}".format(PRETRAIN_EPOCHS, duration))
 
 # ============= TRAIN =============
-if TRAIN:
-    LOG.info("START TRAIN")
-    training_time = time()
+LOG.info("START TRAIN")
+training_time = time()
 
-    malstm.fit([train_input.x1, train_input.x2], train_input.y,
-               epochs=TRAIN_EPOCHS,
-               batch_size=BATCH_SIZE,
-               validation_split=0.1,
-               callbacks=callbacks,
-               verbose=FIT_VERBOSE)
+train_history = malstm.fit([train_input.x1, train_input.x2], train_input.y,
+                     epochs=TRAIN_EPOCHS,
+                     batch_size=BATCH_SIZE,
+                     validation_split=0.1,
+                     callbacks=callbacks,
+                     verbose=FIT_VERBOSE)
 
-    duration = datetime.timedelta(seconds=time() - training_time)
-    print("\nTraining time finished.\n{} epochs in {}".format(TRAIN_EPOCHS, duration))
+duration = datetime.timedelta(seconds=time() - training_time)
+print("\nTraining time finished.\n{} epochs in {}".format(TRAIN_EPOCHS, duration))
 
 total_duration = datetime.timedelta(seconds=time() - start_train)
 
@@ -99,3 +102,8 @@ y_pred = malstm.predict([test_input.x1, test_input.x2])
 # CREATE OUTPUT FILE
 # =========================
 create_output(y_pred, test_input.y, mae, total_duration, model_file, obs=str(sys.argv))
+
+# =========================
+# ===== PLOT GRAPHICS =====
+# =========================
+plot_fit_history(train_history, model_file)
