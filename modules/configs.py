@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 BASE_PATH = '../datasets/'
-SAVED_MODEL_DIR = 'saved_models/'
+RESULTS_DIR = 'results/'
 
 SICK_FILE = BASE_PATH + 'sick_2014/SICK_complete.txt'
 SICK_PRETRAIN_FILE = BASE_PATH + 'sick_2014/pretrain_sts.txt'
@@ -25,9 +25,9 @@ LSTM_HIDDEN_LAYERS = 50  # by the paper
 
 BATCH_SIZE = 32
 
-PRETRAIN = True
+PRETRAIN = False
 PRETRAIN_EPOCHS = 55
-TRAIN_EPOCHS = 380
+TRAIN_EPOCHS = 1
 
 LR = 0.5
 

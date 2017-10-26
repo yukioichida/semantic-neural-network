@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
-from modules.log_config import LOG
-from modules.configs import *
-
-import time
 import os
-import yaml
-import scipy.stats as stats
+
 import numpy as np
+import scipy.stats as stats
+import yaml
 from sklearn.metrics import mean_squared_error as mse
 
-RESULTS_DIR = 'results'
+from modules.configs import *
+from modules.log_config import LOG
 
 
 class ResultData:
-    def __init__(self, pearson, spearman, mse, mae, obs, duration, model_file):
+    def __init__(self, pearson, spearman, mse, obs, duration, model_file, timestamp):
         self.pearson = pearson
         self.spearman = spearman
         self.mse = mse
         self.obs = obs
         self.duration = duration
-        self.mae = mae
         self.model_file = model_file
+        self.timestamp = timestamp
 
     def add_results(self, y_pred, y_val):
         samples_results = []
@@ -43,7 +41,6 @@ class ResultData:
             'pearson': self.pearson,
             'spearman': self.spearman,
             'mean squared error': self.mse,
-            'mean absolute error': self.mae,
             'results': self.results,
             'duration': str(self.duration),
             'obs': self.obs,
@@ -51,18 +48,17 @@ class ResultData:
         }
 
     def write(self):
-        timestamp = int(round(time.time() * 1000))
         yaml_filename = 'bs_%s-pe_%s-e_%s-%s.yml' % (BATCH_SIZE,
                                                      PRETRAIN_EPOCHS,
                                                      TRAIN_EPOCHS,
-                                                     timestamp)
+                                                     self.timestamp)
         yaml_file = os.path.join(RESULTS_DIR, yaml_filename)
 
-        with open(yaml_file, 'w') as file:
-            yaml.dump(self.to_yaml(), file, default_flow_style=False)
+        with open(yaml_file, 'w') as result_file:
+            yaml.dump(self.to_yaml(), result_file, default_flow_style=False)
 
 
-def create_output(y_pred, y_test, mae, duration, model_file, obs=''):
+def create_output(y_pred, y_test, duration, model_file, timestamp, obs=''):
     y_p = y_pred.ravel()
     y_p = (y_p * 4) + 1
     y_t = y_test
@@ -74,11 +70,11 @@ def create_output(y_pred, y_test, mae, duration, model_file, obs=''):
     sr_val = stats.spearmanr(y_p, y_t)[0]
     mse_val = mse(y_p, y_t)
 
-    LOG.info(' Pearson: %f' % (pr_val))
-    LOG.info(' Spearman: %f' % (sr_val))
-    LOG.info(' MSE: %f' % (mse_val))
+    LOG.info(' Pearson: %f' % pr_val)
+    LOG.info(' Spearman: %f' % sr_val)
+    LOG.info(' MSE: %f' % mse_val)
 
-    result = ResultData(np.asscalar(pr_val), np.asscalar(sr_val), np.asscalar(mse_val), np.asscalar(mae),
-                        obs, duration, model_file)
+    result = ResultData(np.asscalar(pr_val), np.asscalar(sr_val), np.asscalar(mse_val),
+                        obs, duration, model_file, timestamp)
     result.add_results(samples, gt)
     result.write()
