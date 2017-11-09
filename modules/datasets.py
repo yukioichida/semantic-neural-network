@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
-from pandas import DataFrame
+import xml.etree.ElementTree as ElementTree
 
 
 class Dataset:
@@ -42,3 +42,19 @@ class SICKFullDataset(Dataset):
 
     def name(self):
         return "full_sick_2014"
+
+
+class AssinDataset(Dataset):
+
+    def __init__(self, filename):
+        tree = ElementTree.parse(filename)
+        root = tree.getroot()
+        similarities = []
+        s1 = []
+        s2 = []
+        for child in root:
+            similarities.append(child.attrib['similarity'])
+            s1.append(child.find('t').text)
+            s2.append(child.find('h').text)
+        data = {'s1': s1, 's2': s2, 'label': similarities}
+        self.df = pd.DataFrame(data=data)

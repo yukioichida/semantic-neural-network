@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import pickle
+import os
+
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 
 from modules.prepare_text import prepare_text
-
-'''
-    Classes and components
-'''
 
 
 class InputData:
@@ -18,8 +17,8 @@ class InputData:
 
 
 class ProcessInputData:
-    def __init__(self):
-        self.tokenizer = Tokenizer()
+    def __init__(self, tokenizer=Tokenizer()):
+        self.tokenizer = tokenizer
         self.max_sentence_length = -1
 
     def pre_process_data(self, df):
@@ -34,47 +33,67 @@ class ProcessInputData:
 
         return sentences_1, sentences_2, labels
 
-    def get_samples(self, sentences_1, sentences_2, label, rescaling_output=1):
+    def get_samples(self, sentences_1, sentences_2, label, rescaling_output=True):
         # Prepare the neural network inputs
         input_sentences_1 = self.tokenizer.texts_to_sequences(sentences_1)
         input_sentences_2 = self.tokenizer.texts_to_sequences(sentences_2)
         x1 = pad_sequences(input_sentences_1, self.max_sentence_length)
         x2 = pad_sequences(input_sentences_2, self.max_sentence_length)
         y = np.array(label)
-        y = np.clip(y, 1, 5)  # paper definition
-        y = (y - 1) / 4  # WARNING: LABEL RESCALING
+        if rescaling_output:
+            y = np.clip(y, 1, 5)  # paper definition
+            y = (y - 1) / 4  # WARNING: LABEL RESCALING
         return InputData(x1, x2, y)
 
-    def prepare_input_data(self, pretrain_df, train_df, test_df):
-        train_sentences_1, train_sentences_2, train_labels = self.pre_process_data(train_df)
-        pretrain_sentences_1, pretrain_sentences_2, pretrain_labels = self.pre_process_data(pretrain_df)
-        test_sentences_1, test_sentences_2, test_labels = self.pre_process_data(test_df)
+    def prepare_train_data(self, data_frames, dataset_name):
+        labels = []
+        sentences_1 = []
+        sentences_2 = []
+        for data_frame in data_frames:
+            train_sentences_1, train_sentences_2, train_labels = self.pre_process_data(data_frame)
+            self.tokenizer.fit_on_texts(train_sentences_1)
+            self.tokenizer.fit_on_texts(train_sentences_2)
+            sentences_1.append(train_sentences_1)
+            sentences_2.append(train_sentences_2)
 
-        self.tokenizer.fit_on_texts(train_sentences_1)
-        self.tokenizer.fit_on_texts(train_sentences_2)
-        self.tokenizer.fit_on_texts(pretrain_sentences_1)
-        self.tokenizer.fit_on_texts(pretrain_sentences_2)
-        self.tokenizer.fit_on_texts(test_sentences_1)
-        self.tokenizer.fit_on_texts(test_sentences_2)
+            labels.append(train_labels)
 
         self.word_index = self.tokenizer.word_index
         self.vocabulary_size = len(self.word_index)
+        self.save_tokenizer(dataset_name)
 
         max_sentence_length = 0
         # The size of the input sequence is the size of the largest sequence of the input dataset
-        for sentence_vec in [train_sentences_1, train_sentences_2,
-                             pretrain_sentences_1, pretrain_sentences_2,
-                             test_sentences_1, test_sentences_2]:
-            for sentence in sentence_vec:
-                sentence_length = len(sentence.split())
-                if sentence_length > max_sentence_length:
-                    max_sentence_length = sentence_length
+        for sentence_vec_side in [sentences_1, sentences_2]:
+            for sentence_vec in sentence_vec_side:
+                for sentence in sentence_vec:
+                    sentence_length = len(sentence.split())
+                    if sentence_length > max_sentence_length:
+                        max_sentence_length = sentence_length
 
         self.max_sentence_length = max_sentence_length
 
-        # Prepare the neural network inputs
-        pretrain_input_data = self.get_samples(pretrain_sentences_1, pretrain_sentences_2, pretrain_labels)
-        train_input_data = self.get_samples(train_sentences_1, train_sentences_2, train_labels)
-        test_input_data = self.get_samples(test_sentences_1, test_sentences_2, test_labels)
+        results = []
+        for i in range(0, len(data_frames)):
+            input_data = self.get_samples(sentences_1[i], sentences_2[i], labels[i])
+            results.append(input_data)
+        return results
 
-        return pretrain_input_data, train_input_data, test_input_data
+    def get_input_from_pair(self, sentence_1, sentence_2, sentence_length):
+        # Prepare the neural network inputs
+        input_sentences_1 = self.tokenizer.texts_to_sequences([prepare_text(sentence_1)])
+        input_sentences_2 = self.tokenizer.texts_to_sequences([prepare_text(sentence_2)])
+        x1 = pad_sequences(input_sentences_1, sentence_length)
+        x2 = pad_sequences(input_sentences_2, sentence_length)
+        return x1, x2
+
+    def prepare_data(self, dataframe):
+        sentences_1, sentences_2, labels = self.pre_process_data(dataframe)
+        return self.get_samples(sentences_1, sentences_2, labels)
+
+    def save_tokenizer(self, dataset):
+        tokenizer_file = "tokenizer_%s_%s.pickle" % (dataset, self.vocabulary_size)
+        tokenizer_filepath = os.path.join('tokenizers', tokenizer_file)
+        if not os.path.exists(tokenizer_filepath):
+            with open(tokenizer_filepath, 'wb') as handle:
+                pickle.dump(self.tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)

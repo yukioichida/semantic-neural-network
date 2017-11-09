@@ -58,11 +58,12 @@ class ResultData:
             yaml.dump(self.to_yaml(), result_file, default_flow_style=False)
 
 
-def create_output(y_pred, y_test, duration, model_file, timestamp, obs=''):
+def create_output(y_pred, y_test, duration, model_file, timestamp, obs='', rescaling_output=True):
     y_p = y_pred.ravel()
-    y_p = (y_p * 4) + 1
     y_t = y_test
-    y_t = (y_t * 4) + 1
+    if rescaling_output:
+        y_p = (y_p * 4) + 1
+        y_t = (y_t * 4) + 1
 
     samples = y_p[:20]
     gt = y_t[:20]

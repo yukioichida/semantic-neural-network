@@ -21,8 +21,8 @@ def init_model(max_sequence_length, embedding_matrix, dropout, recurrent_dropout
     right_encoder = embedding_layer(right_input)
 
     # Recurrent Layer
-    recurrent_layer = GRU(lstm_hidden_layers, implementation=2)
-    # recurrent_layer = LSTM(lstm_hidden_layers, implementation=2)
+    recurrent_layer = GRU(lstm_hidden_layers, implementation=2, recurrent_dropout=recurrent_dropout)
+    #recurrent_layer = LSTM(lstm_hidden_layers, implementation=2)
 
     left_lstm = recurrent_layer(left_encoder)
     right_lstm = recurrent_layer(right_encoder)
