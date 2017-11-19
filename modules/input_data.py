@@ -45,6 +45,28 @@ class ProcessInputData:
             y = (y - 1) / 4  # WARNING: LABEL RESCALING
         return InputData(x1, x2, y)
 
+    def get_input_from_pair(self, sentence_1, sentence_2, sentence_length):
+        # Prepare the neural network inputs
+        input_sentences_1 = self.tokenizer.texts_to_sequences([prepare_text(sentence_1)])
+        input_sentences_2 = self.tokenizer.texts_to_sequences([prepare_text(sentence_2)])
+        x1 = pad_sequences(input_sentences_1, sentence_length)
+        x2 = pad_sequences(input_sentences_2, sentence_length)
+        return x1, x2
+
+    def get_input_from_collection(self, sentences_1, sentences_2, sentence_length):
+        preprocessed_sentences_1 = []
+        preprocessed_sentences_2 = []
+        for index in range(0, len(sentences_1)):
+            preprocessed_sentences_1.append(prepare_text(sentences_1[index]))
+            preprocessed_sentences_2.append(prepare_text(sentences_2[index]))
+
+        # Prepare the neural network inputs
+        input_sentences_1 = self.tokenizer.texts_to_sequences(preprocessed_sentences_1)
+        input_sentences_2 = self.tokenizer.texts_to_sequences(preprocessed_sentences_2)
+        x1 = pad_sequences(input_sentences_1, sentence_length)
+        x2 = pad_sequences(input_sentences_2, sentence_length)
+        return x1, x2
+
     def prepare_train_data(self, data_frames, dataset_name):
         labels = []
         sentences_1 = []
@@ -71,25 +93,14 @@ class ProcessInputData:
                     if sentence_length > max_sentence_length:
                         max_sentence_length = sentence_length
 
-        self.max_sentence_length = max_sentence_length
+
+        self.max_sentence_length = 100
 
         results = []
         for i in range(0, len(data_frames)):
             input_data = self.get_samples(sentences_1[i], sentences_2[i], labels[i])
             results.append(input_data)
         return results
-
-    def get_input_from_pair(self, sentence_1, sentence_2, sentence_length):
-        # Prepare the neural network inputs
-        input_sentences_1 = self.tokenizer.texts_to_sequences([prepare_text(sentence_1)])
-        input_sentences_2 = self.tokenizer.texts_to_sequences([prepare_text(sentence_2)])
-        x1 = pad_sequences(input_sentences_1, sentence_length)
-        x2 = pad_sequences(input_sentences_2, sentence_length)
-        return x1, x2
-
-    def prepare_data(self, dataframe):
-        sentences_1, sentences_2, labels = self.pre_process_data(dataframe)
-        return self.get_samples(sentences_1, sentences_2, labels)
 
     def save_tokenizer(self, dataset):
         tokenizer_file = "tokenizer_%s_%s.pickle" % (dataset, self.vocabulary_size)

@@ -16,13 +16,13 @@ class STSDataset(Dataset):
         return "sts"
 
 
-class QuoraQuestionsDataset(Dataset):
+class MSRPDataset(Dataset):
     def __init__(self, filename):
-        df = pd.read_csv(filename, encoding="utf-8")
-        self.df = df.rename(columns={'question1': 's1', 'question2': 's2', 'is_duplicate': 'label'})
+        df = pd.read_csv(filename, encoding="utf-8", sep='\t', quoting=3)
+        self.df = df.rename(columns={'#1 String': 's1', '#2 String': 's2', 'Quality': 'label'})
 
     def name(self):
-        return "quora-kaggle"
+        return "MSRP"
 
 
 class SICKDataset(Dataset):
@@ -45,7 +45,6 @@ class SICKFullDataset(Dataset):
 
 
 class AssinDataset(Dataset):
-
     def __init__(self, filename):
         tree = ElementTree.parse(filename)
         root = tree.getroot()

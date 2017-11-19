@@ -15,7 +15,7 @@ from modules.embedding import load_embedding_matrix
 from modules.result_data import create_output
 from modules.plot_result import plot_fit_history, save_history
 
-pretrain_df = STSDataset(SICK_PRETRAIN_FILE).data_frame()
+#pretrain_df = STSDataset(SICK_PRETRAIN_FILE).data_frame()
 train_df = SICKFullDataset(SICK_TRAIN_FILE).data_frame()
 # train_df = STSDataset(SICK_AUGMENTED_FILE).data_frame()
 # train_df = STSDataset(SICK_AUGMENTED_NOUN_FILE).data_frame()

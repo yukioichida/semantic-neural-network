@@ -21,8 +21,8 @@ def load_embedding_matrix(dataset_name, word_index, embedding_dim=300):
         LOG.info('Loading existing embedding matrix')
         embedding_matrix = np.loadtxt(embedding_cache_file)
     else:
-        LOG.info('File %s not found. Loading new embedding matrix from: %s' % (embedding_matrix_file, EMBEDDING_NAME))
-        embedding_model = KeyedVectors.load_word2vec_format(EMBEDDING_FILE, binary=EMBEDDING_BINARY)
+        LOG.info('File %s not found. Loading new embedding matrix from: %s. Embedding binary: %s' % (embedding_matrix_file, EMBEDDING_NAME, EMBEDDING_BINARY))
+        embedding_model = KeyedVectors.load(EMBEDDING_FILE)
 
         embedding_matrix = 1 * np.random.randn(vocab_size, embedding_dim)  # This will be the embedding matrix
         embedding_matrix[0] = 0  # So that the padding will be ignored
@@ -33,7 +33,8 @@ def load_embedding_matrix(dataset_name, word_index, embedding_dim=300):
             if idx >= vocab_size:
                 continue
             if word in embedding_model.vocab:
-                embedding_vector = embedding_model.word_vec(word)
+                embedding_vector = embedding_model[word]
+                #print("Embedding vector (%s, %s)" % (word, embedding_vector))
                 if embedding_vector is not None:
                     embedding_matrix[idx] = embedding_vector
                 else:
