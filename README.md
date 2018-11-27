@@ -10,7 +10,7 @@ Neural network model for measure semantic similarity between two sentences using
 
 ## Files
 - run_model.py - Run the neural network training
-- modules/config - Configuration values for the project (dataset files)
+- modules/config - Project Configuration values (dataset files, hyperparameters)
 
 ## Dataset used
 - SICK (Sentences involving compositional knowledge): https://github.com/brmson/dataset-sts/tree/master/data/sts/sick2014
