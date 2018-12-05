@@ -2,6 +2,7 @@
 
 ## About
 Neural network model for measure semantic similarity between two sentences using Siamese Architeture.
+DOI: https://doi.org/10.1109/IJCNN.2018.8489433
 
 ## Requirements 
  - Python 2.7
