@@ -22,7 +22,7 @@ def load_embedding_matrix(dataset_name, word_index, embedding_dim=300):
         embedding_matrix = np.loadtxt(embedding_cache_file)
     else:
         LOG.info('File %s not found. Loading new embedding matrix from: %s. Embedding binary: %s' % (embedding_matrix_file, EMBEDDING_NAME, EMBEDDING_BINARY))
-        embedding_model = KeyedVectors.load(EMBEDDING_FILE)
+        embedding_model = KeyedVectors.load_word2vec_format(EMBEDDING_FILE, binary=EMBEDDING_BINARY)
 
         embedding_matrix = 1 * np.random.randn(vocab_size, embedding_dim)  # This will be the embedding matrix
         embedding_matrix[0] = 0  # So that the padding will be ignored

@@ -29,9 +29,9 @@ train_df = pd.concat([train_df, val_df])
 # PREPARE INPUT DATA - PREPROCESS
 # ======================
 process = ProcessInputData()
-train_data = process.prepare_train_data([train_df], 'SICK')
+train_data = process.prepare_data([train_df], 'SICK')
 train_input = train_data[0]
-test_input = process.prepare_data(test_df)
+test_input = process.prepare_data([test_df], 'SICK')
 max_sentence_length = process.max_sentence_length
 vocab_size = process.vocabulary_size + 1
 word_index = process.word_index
@@ -40,6 +40,7 @@ LOG.info("Max Sentence Length %s | Vocab Size: %s" % (max_sentence_length, vocab
 # =======================================
 #   EMBEDDING MATRIX FOR WORD EMBEDDINGS
 # =======================================
+print EMBEDDING_BINARY
 embedding_matrix = load_embedding_matrix("SICK", word_index)
 
 # =========================================

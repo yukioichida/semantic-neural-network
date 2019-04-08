@@ -67,7 +67,7 @@ class ProcessInputData:
         x2 = pad_sequences(input_sentences_2, sentence_length)
         return x1, x2
 
-    def prepare_train_data(self, data_frames, dataset_name):
+    def prepare_data(self, data_frames, dataset_name):
         labels = []
         sentences_1 = []
         sentences_2 = []
